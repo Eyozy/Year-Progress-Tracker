@@ -1,0 +1,210 @@
+---
+import { t, formatDate } from "../utils/i18n.js";
+
+// 水平进度条组件
+const {
+  progress = 0,
+  height = "1.5rem",
+  label = true,
+  width = "100%",
+  animated = true,
+  className = "",
+} = Astro.props;
+const percentage = Math.round(progress * 100);
+---
+
+<div class={`progress-wrapper w-full mt-2 mb-4 mx-auto slide-up ${className}`}>
+  {
+    label && (
+      <div class="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 w-full">
+        <span data-i18n="progress.start">{t("progress.start")}</span>
+        <span data-i18n="progress.middle">{t("progress.middle")}</span>
+        <span data-i18n="progress.end">{t("progress.end")}</span>
+      </div>
+    )
+  }
+  <div
+    class="progress-bar-container relative rounded-full overflow-hidden w-full"
+    style={`height: ${height}`}>
+    <div
+      class={`progress-bar h-full rounded-full ${animated ? "with-animation" : ""}`}
+      style={`width: ${Math.min(percentage, 100)}%`}
+      role="progressbar"
+      aria-valuenow={percentage}
+      aria-valuemin="0"
+      aria-valuemax="100"></div>
+
+    <!-- 进度指示器，仅当进度小于100%时显示 -->
+    {percentage < 100 && <div class="progress-indicator hidden sm:block" />}
+  </div>
+
+  <!-- 当前日期和过去天数指示 -->
+  <div
+    class="flex justify-between mt-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 w-full">
+    <div>
+      <span class="font-semibold" data-i18n="progress.elapsed"
+        >{t("progress.elapsed")}</span
+      >
+      <span id="elapsedDays">{Math.round(365 * progress)}</span>
+    </div>
+    <div>
+      <span class="font-semibold" data-i18n="progress.current"
+        >{t("progress.current")}</span
+      >
+      <span id="currentDate"></span>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  function updateProgressInfo() {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const elapsed = Number(now) - Number(startOfYear);
+    const total = Number(endOfYear) - Number(startOfYear);
+    const progress = elapsed / total;
+    const percentage = Math.round(progress * 100);
+
+    // 计算已过天数
+    const elapsedDays = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+    const elapsedDaysEl = document.getElementById("elapsedDays");
+    if (elapsedDaysEl) {
+      elapsedDaysEl.textContent = elapsedDays.toString();
+    }
+
+    // 更新当前日期
+    const currentDateEl = document.getElementById("currentDate");
+    if (currentDateEl) {
+      const lang = document.documentElement.getAttribute("lang") || "zh";
+      currentDateEl.textContent = now.toLocaleDateString(
+        lang === "zh" ? "zh-CN" : "en-US",
+        { month: "long", day: "numeric" }
+      );
+    }
+
+    // 更新进度条
+    document.querySelectorAll(".progress-bar").forEach((bar) => {
+      if (bar instanceof HTMLElement) {
+        // 限制最大宽度为100%，防止溢出
+        const safePercentage = Math.min(percentage, 100);
+        bar.style.width = `${safePercentage}%`;
+        bar.setAttribute("aria-valuenow", percentage.toString());
+      }
+    });
+
+    // 进度指示器，只在进度小于100%时显示
+    document.querySelectorAll(".progress-indicator").forEach((indicator) => {
+      if (indicator instanceof HTMLElement) {
+        if (percentage >= 100) {
+          indicator.style.display = "none";
+        } else {
+          indicator.style.display = "";
+        }
+      }
+    });
+  }
+
+  // 语言变化时更新显示
+  function handleLanguageChange() {
+    updateProgressInfo();
+  }
+
+  // 监听更新事件
+  document.addEventListener("updateProgress", updateProgressInfo);
+
+  // 监听语言变化
+  window.addEventListener("langChange", handleLanguageChange);
+
+  // 初始化
+  document.addEventListener("DOMContentLoaded", updateProgressInfo);
+</script>
+
+<style>
+  .progress-bar-container {
+    background: var(--color-progress-bg, #e0e0e0);
+    box-shadow: inset 0 1px 3px var(--color-shadow, rgba(0, 0, 0, 0.1));
+    transition: background-color var(--transition-normal, 0.3s) ease;
+    position: relative;
+  }
+
+  @media (max-width: 640px) {
+    .progress-bar-container {
+      height: 1rem;
+    }
+  }
+
+  .progress-bar {
+    background: linear-gradient(
+      to right,
+      var(--color-accent-primary, #3b82f6),
+      var(--color-accent-secondary, #9333ea)
+    );
+    transition: width 1s ease-out;
+    box-shadow: 0 1px 3px var(--color-shadow, rgba(0, 0, 0, 0.1));
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .progress-bar.with-animation::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .progress-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: translateX(-2px); /* 减小偏移量 */
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  .progress-wrapper {
+    transition:
+      transform var(--transition-normal, 0.3s) ease,
+      opacity var(--transition-normal, 0.3s) ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
+  [data-theme="dark"] .progress-bar-container {
+    background: var(--color-progress-bg, #374151);
+  }
+</style>

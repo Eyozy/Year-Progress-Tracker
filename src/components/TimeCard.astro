@@ -1,0 +1,137 @@
+---
+// 时间数据卡片组件
+const {
+  title,
+  value,
+  type = "number", // 可选：number, progress, text
+  unit = "",
+  icon = "",
+} = Astro.props;
+
+// 当type为progress时，将值处理为百分比
+const displayValue =
+  type === "progress" ? `${Math.round(value * 100)}%` : value;
+---
+
+<div
+  class="time-card bg-white dark:bg-gray-700 shadow rounded-lg p-4 sm:p-6 transition-all hover:shadow-md">
+  <h3
+    class="text-lg sm:text-xl font-medium text-gray-700 dark:text-gray-100 mb-3"
+    >{title}</h3
+  >
+
+  {
+    type === "progress" ? (
+      <div class="space-y-2">
+        <div class="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-700 ease-out"
+            style={`width: ${Math.round(value * 100)}%`}
+            data-progress={value}
+          />
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
+          {displayValue}
+        </p>
+      </div>
+    ) : (
+      <p class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100">
+        <span class="value-display">{displayValue}</span>
+        {unit && (
+          <span class="text-xl sm:text-2xl ml-1 text-gray-600 dark:text-gray-300">
+            {unit}
+          </span>
+        )}
+      </p>
+    )
+  }
+
+  {icon && <div class="text-gray-400 dark:text-gray-300 mt-4">{icon}</div>}
+</div>
+
+<style>
+  .time-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.2s ease;
+  }
+
+  @media (max-width: 640px) {
+    .time-card {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  // 监听更新事件，更新进度条类型的卡片
+  document.addEventListener("updateProgress", () => {
+    // 获取所有进度条类型的卡片
+    const progressBars = document.querySelectorAll(
+      ".time-card div[data-progress]"
+    );
+
+    // 处理进度条类型卡片
+    progressBars.forEach((bar) => {
+      // 获取当前季度进度
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
+      const quarterStartDate = new Date(
+        now.getFullYear(),
+        quarterStartMonth,
+        1
+      );
+      const quarterEndMonth = quarterStartMonth + 3;
+      const quarterEndDate = new Date(
+        now.getFullYear(),
+        quarterEndMonth,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
+
+      const elapsed = Number(now) - Number(quarterStartDate);
+      const total = Number(quarterEndDate) - Number(quarterStartDate);
+      const progress = elapsed / total;
+
+      // 更新进度条
+      if (bar instanceof HTMLElement) {
+        bar.style.width = `${Math.round(progress * 100)}%`;
+      }
+
+      // 更新显示的值
+      const container = bar.closest(".space-y-2");
+      const valueDisplay = container?.querySelector("p");
+      if (valueDisplay) {
+        valueDisplay.textContent = `${Math.round(progress * 100)}%`;
+      }
+    });
+
+    // 获取剩余天数卡片
+    const remainingDaysCards = document.querySelectorAll(
+      ".time-card .value-display"
+    );
+
+    // 找到剩余天数卡片
+    remainingDaysCards.forEach((card) => {
+      const parentText = card.parentElement?.textContent || "";
+
+      if (parentText.includes("剩余天数")) {
+        const now = new Date();
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        const diffTime = Number(endOfYear) - Number(now);
+        const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        card.textContent = remainingDays.toString();
+      }
+      // 找到已过月份卡片
+      else if (parentText.includes("已过月份")) {
+        const now = new Date();
+        card.textContent = (now.getMonth() + 1).toString();
+      }
+    });
+  });
+</script>

@@ -1,0 +1,27 @@
+---
+const {
+  title = "年度进度追踪器",
+  description = "实时查看年度时间进度，获取当前年份已过时间百分比与剩余天数",
+} = Astro.props;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+
+<!-- OGP -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={Astro.url.href} />
+<meta property="og:image" content="/social-card.svg" />
+
+<!-- 结构化数据 -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "{title}",
+    "description": "{description}",
+    "url": "{Astro.url.href}"
+  }
+</script>

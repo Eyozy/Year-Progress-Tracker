@@ -1,0 +1,133 @@
+---
+// 环形进度条组件
+const { progress = 0, size = 16, strokeWidth = 1.5 } = Astro.props;
+
+// 计算SVG属性
+const radius = (size * 16 - strokeWidth * 16) / 2;
+const circumference = radius * 2 * Math.PI;
+const dashoffset = circumference * (1 - progress);
+const percentage = Math.round(progress * 100);
+
+// 径向渐变ID
+const gradientId = `progressGradient-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class="flex flex-col items-center justify-center">
+  <div class="relative w-full max-w-md">
+    <svg
+      class="w-full h-auto transform -rotate-90 progress-ring"
+      width={`${size}rem`}
+      height={`${size}rem`}
+      viewBox={`0 0 ${size * 16} ${size * 16}`}
+      fill="none"
+      aria-label={`年度进度：${percentage}%`}
+      role="img">
+      <!-- 定义渐变 -->
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6"></stop>
+          <stop offset="100%" stop-color="#8b5cf6"></stop>
+        </linearGradient>
+      </defs>
+
+      <!-- 背景圆圈 -->
+      <circle
+        cx={size * 8}
+        cy={size * 8}
+        r={radius}
+        stroke="#e5e7eb"
+        stroke-width={`${strokeWidth}rem`}
+        fill="transparent"></circle>
+
+      <!-- 进度圆圈 -->
+      <circle
+        cx={size * 8}
+        cy={size * 8}
+        r={radius}
+        stroke={`url(#${gradientId})`}
+        stroke-width={`${strokeWidth}rem`}
+        stroke-linecap="round"
+        stroke-dasharray={circumference}
+        stroke-dashoffset={dashoffset}
+        fill="transparent"
+        class="transition-all duration-700 ease-out"></circle>
+    </svg>
+
+    <!-- 中心百分比文字 -->
+    <div class="absolute inset-0 flex flex-col items-center justify-center">
+      <span
+        class="text-3xl font-bold text-transparent sm:text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text animate-fade-in">
+        {percentage}%
+      </span>
+      <span
+        class="mt-2 text-sm text-gray-500 sm:text-base md:text-lg lg:text-xl"
+        >已完成</span
+      >
+    </div>
+  </div>
+</div>
+
+<style>
+  .progress-ring {
+    width: 100%;
+    max-width: 24rem;
+    height: auto;
+    stroke-width: 1.5rem;
+    transition: stroke-dashoffset 1s ease-out;
+  }
+
+  @media (max-width: 640px) {
+    .progress-ring {
+      stroke-width: 1rem;
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+</style>
+
+<script is:inline>
+  // 监听更新事件
+  document.addEventListener("updateProgress", () => {
+    const progressRings = document.querySelectorAll(".progress-ring");
+    if (!progressRings.length) return;
+
+    // 重新计算进度
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const elapsed = Number(now) - Number(startOfYear);
+    const total = Number(endOfYear) - Number(startOfYear);
+    const progress = elapsed / total;
+
+    progressRings.forEach((svg) => {
+      const progressCircle = svg.querySelector("circle:nth-child(3)");
+      if (!progressCircle) return;
+
+      const radius = parseFloat(progressCircle.getAttribute("r") || "0");
+      const circumference = radius * 2 * Math.PI;
+      const dashoffset = circumference * (1 - progress);
+
+      progressCircle.setAttribute("stroke-dashoffset", dashoffset.toString());
+
+      // 更新百分比文本
+      const percentageElement =
+        svg.parentElement?.querySelector("span:first-child");
+      if (percentageElement) {
+        percentageElement.textContent = `${Math.round(progress * 100)}%`;
+      }
+    });
+  });
+</script>

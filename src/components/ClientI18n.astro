@@ -1,0 +1,104 @@
+---
+import { translations } from '../utils/i18n.js';
+---
+
+<!-- 预加载翻译数据到全局变量 -->
+<script is:inline define:vars={{ translations: JSON.stringify(translations) }}>
+  // 立即定义全局翻译对象
+  window.i18nTranslations = JSON.parse(translations);
+  
+  // 提前初始化语言
+  function initEarlyTranslations() {
+    const savedLang = localStorage ? localStorage.getItem('lang') || 'zh' : 'zh';
+    document.documentElement.setAttribute('lang', savedLang);
+    
+    // 预先翻译所有带data-i18n属性的元素
+    function getCurrentLang() {
+      return document.documentElement.getAttribute('lang') || 'zh';
+    }
+    
+    function getTranslation(key, lang) {
+      if (window.i18nTranslations && window.i18nTranslations[lang] && window.i18nTranslations[lang][key]) {
+        return window.i18nTranslations[lang][key];
+      }
+      return key;
+    }
+    
+    // 定义MutationObserver监视DOM变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // 元素节点
+              if (node.hasAttribute && node.hasAttribute('data-i18n')) {
+                const key = node.getAttribute('data-i18n');
+                node.textContent = getTranslation(key, getCurrentLang());
+              }
+              
+              // 处理子元素
+              node.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = getTranslation(key, getCurrentLang());
+              });
+            }
+          });
+        }
+      });
+    });
+    
+    // 开始观察DOM变化
+    observer.observe(document.documentElement, { 
+      childList: true, 
+      subtree: true 
+    });
+    
+    // 初始应用翻译
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key) {
+        el.textContent = getTranslation(key, getCurrentLang());
+      }
+    });
+  }
+  
+  // 立即执行早期翻译
+  initEarlyTranslations();
+</script>
+
+<script is:inline>
+  // 客户端国际化脚本
+  document.addEventListener('DOMContentLoaded', () => {
+    // 获取当前语言
+    function getCurrentLang() {
+      return document.documentElement.getAttribute('lang') || 'zh';
+    }
+
+    // 获取翻译
+    function getTranslation(key, lang) {
+      // 从全局变量中获取翻译
+      if (window.i18nTranslations && window.i18nTranslations[lang] && window.i18nTranslations[lang][key]) {
+        return window.i18nTranslations[lang][key];
+      }
+      return key;
+    }
+
+    // 初始化页面翻译
+    function initTranslations() {
+      const lang = getCurrentLang();
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) {
+          el.textContent = getTranslation(key, lang);
+        }
+      });
+    }
+
+    // 设置语言变更监听
+    window.addEventListener('langChange', () => {
+      initTranslations();
+    });
+
+    // 初始化
+    initTranslations();
+  });
+</script> 

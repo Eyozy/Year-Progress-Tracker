@@ -1,0 +1,297 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import ProgressBar from "../components/ProgressBar.astro";
+import { t } from "../utils/i18n.js";
+import {
+  calculateProgress,
+  calculateRemainingDays,
+  calculateElapsedDays,
+} from "../utils/time.js";
+
+// 计算当前进度
+const progress = calculateProgress();
+const progressPercent = Math.min(progress * 100, 100).toFixed(6) + "%";
+const remainingDays = calculateRemainingDays();
+const elapsedDays = calculateElapsedDays();
+
+// 获取当前日期和时间
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
+const day = String(now.getDate()).padStart(2, "0");
+const hours = String(now.getHours()).padStart(2, "0");
+const minutes = String(now.getMinutes()).padStart(2, "0");
+const dateStr = `${year}-${month}-${day}`;
+const timeStr = `${hours}:${minutes}`;
+
+// 计算季度进度
+const currentMonth = now.getMonth();
+const currentQuarter = Math.floor(currentMonth / 3) + 1;
+
+// 计算每个季度的进度
+const q1Progress =
+  currentQuarter === 1
+    ? Math.min(
+        (now - new Date(year, 0, 1)) /
+          (new Date(year, 3, 0) - new Date(year, 0, 1)),
+        1
+      ) * 100
+    : currentQuarter > 1
+      ? 100
+      : 0;
+
+const q2Progress =
+  currentQuarter === 2
+    ? Math.min(
+        (now - new Date(year, 3, 1)) /
+          (new Date(year, 6, 0) - new Date(year, 3, 1)),
+        1
+      ) * 100
+    : currentQuarter > 2
+      ? 100
+      : 0;
+
+const q3Progress =
+  currentQuarter === 3
+    ? Math.min(
+        (now - new Date(year, 6, 1)) /
+          (new Date(year, 9, 0) - new Date(year, 6, 1)),
+        1
+      ) * 100
+    : currentQuarter > 3
+      ? 100
+      : 0;
+
+const q4Progress =
+  currentQuarter === 4
+    ? Math.min(
+        (now - new Date(year, 9, 1)) /
+          (new Date(year, 12, 0) - new Date(year, 9, 1)),
+        1
+      ) * 100
+    : 0;
+---
+
+<MainLayout title={t("app.title")}>
+  <div
+    class="max-w-3xl p-8 mx-auto my-8 bg-white shadow-md dark:bg-gray-800 rounded-xl card fade-in">
+    <h1
+      class="mb-2 text-3xl font-bold text-center text-blue-500 dark:text-blue-400"
+      data-i18n="app.title">
+      {t("app.title")}
+    </h1>
+    <p
+      class="mb-8 text-center text-gray-600 dark:text-gray-400"
+      data-i18n="app.description">
+      {t("app.description")}
+    </p>
+
+    <div class="w-full max-w-full px-1 mx-auto mb-6">
+      <div class="flex justify-between mb-1">
+        <span class="text-lg font-medium" data-i18n="home.yearProgress"
+          >{t("home.yearProgress")}</span
+        >
+        <span class="text-lg font-bold text-blue-600 dark:text-blue-400"
+          >{progressPercent}</span
+        >
+      </div>
+      <div
+        class="w-full h-4 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+        <div
+          class="h-4 transition-all duration-500 rounded-full bg-gradient-to-r from-blue-300 to-blue-500 dark:from-blue-600 dark:to-purple-700"
+          style={`width: ${progressPercent}`}></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-2 mb-6 sm:grid-cols-3">
+      <div
+        class="p-4 text-center rounded-lg bg-blue-50 dark:bg-blue-900/20 card">
+        <div class="flex justify-center mb-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6 text-blue-500 dark:text-blue-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+        </div>
+        <p
+          class="text-sm text-gray-500 dark:text-gray-400"
+          data-i18n="home.currentDate">
+          {t("home.currentDate")}
+        </p>
+        <p class="text-xl font-bold dark:text-white">{dateStr}</p>
+        <p class="text-lg dark:text-gray-300 current-time">{timeStr}</p>
+      </div>
+
+      <div
+        class="p-4 text-center rounded-lg bg-green-50 dark:bg-green-900/20 card">
+        <div class="flex justify-center mb-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6 text-green-500 dark:text-green-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <p
+          class="text-sm text-gray-500 dark:text-gray-400"
+          data-i18n="home.elapsedDays">
+          {t("home.elapsedDays")}
+        </p>
+        <p class="text-2xl font-bold dark:text-white">{elapsedDays}</p>
+      </div>
+
+      <div
+        class="p-4 text-center rounded-lg bg-purple-50 dark:bg-purple-900/20 card">
+        <div class="flex justify-center mb-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6 text-purple-500 dark:text-purple-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+        <p
+          class="text-sm text-gray-500 dark:text-gray-400"
+          data-i18n="home.remainingDays">
+          {t("home.remainingDays")}
+        </p>
+        <p class="text-2xl font-bold dark:text-white">{remainingDays}</p>
+      </div>
+    </div>
+
+    <ProgressBar progress={progress} className="w-full max-w-full" />
+
+    <div
+      class="w-full max-w-full px-1 mb-8 slide-up"
+      style="animation-delay: 0.2s">
+      <h2
+        class="mb-4 text-xl font-bold dark:text-white"
+        data-i18n="home.quarters">
+        {t("home.quarters")}
+      </h2>
+
+      <div class="w-full space-y-4">
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="dark:text-gray-300" data-i18n="home.q1"
+              >{t("home.q1")}</span
+            >
+            <span class="dark:text-gray-300">{q1Progress.toFixed(2)}%</span>
+          </div>
+          <div
+            class="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+            <div
+              class="h-3 transition-all duration-500 bg-red-400 rounded-full dark:bg-red-500"
+              style={`width: ${Math.min(q1Progress, 100)}%`}></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="dark:text-gray-300" data-i18n="home.q2"
+              >{t("home.q2")}</span
+            >
+            <span class="dark:text-gray-300">{q2Progress.toFixed(2)}%</span>
+          </div>
+          <div
+            class="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+            <div
+              class="h-3 transition-all duration-500 bg-blue-400 rounded-full dark:bg-blue-500"
+              style={`width: ${Math.min(q2Progress, 100)}%`}></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="dark:text-gray-300" data-i18n="home.q3"
+              >{t("home.q3")}</span
+            >
+            <span class="dark:text-gray-300">{q3Progress.toFixed(2)}%</span>
+          </div>
+          <div
+            class="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+            <div
+              class="h-3 transition-all duration-500 bg-green-400 rounded-full dark:bg-green-500"
+              style={`width: ${Math.min(q3Progress, 100)}%`}></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="dark:text-gray-300" data-i18n="home.q4"
+              >{t("home.q4")}</span
+            >
+            <span class="dark:text-gray-300">{q4Progress.toFixed(2)}%</span>
+          </div>
+          <div
+            class="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+            <div
+              class="h-3 transition-all duration-500 bg-purple-400 rounded-full dark:bg-purple-500"
+              style={`width: ${Math.min(q4Progress, 100)}%`}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p
+      class="mt-8 text-sm text-center text-gray-500 dark:text-gray-400 fade-in"
+      data-i18n="app.footer">{t("app.footer")}</p
+    >
+  </div>
+</MainLayout>
+
+<script>
+  import { initTranslations, setupLanguageListener } from "../utils/i18n.js";
+
+  // 每秒更新一次时间
+  function updateClock() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const timeStr = `${hours}:${minutes}`;
+
+    document.querySelectorAll(".current-time").forEach((el) => {
+      el.textContent = timeStr;
+    });
+
+    requestAnimationFrame(() => {
+      setTimeout(updateClock, 1000);
+    });
+  }
+
+  // 初始化
+  document.addEventListener("DOMContentLoaded", () => {
+    // 初始化翻译
+    initTranslations();
+    setupLanguageListener();
+
+    // 初始化时钟
+    updateClock();
+
+    // 添加卡片动画
+    const cards = document.querySelectorAll(".card");
+    cards.forEach((card, index) => {
+      card.style.animationDelay = `${index * 0.1}s`;
+    });
+  });
+</script>

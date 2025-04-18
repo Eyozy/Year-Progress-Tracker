@@ -1,0 +1,161 @@
+---
+import "../styles/global.css";
+import SEO from "../components/SEO.astro";
+import ClientI18n from "../components/ClientI18n.astro";
+import { t } from "../utils/i18n.js";
+
+const { title = "年度进度追踪器" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <SEO title={title} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <ClientI18n />
+  </head>
+  <body
+    class="min-h-screen font-sans text-gray-800 bg-gray-100 dark:bg-gray-900 dark:text-white lg:flex lg:flex-col lg:h-screen">
+    <header class="w-full py-4">
+      <div
+        class="flex items-center justify-between px-4 mx-auto max-w-7xl content-container">
+        <h1 class="text-xl font-bold" id="page-title" data-i18n="app.title"
+          >{t("app.title")}</h1
+        >
+        <div class="flex items-center gap-3">
+          <button
+            id="toggleLang"
+            class="px-3 py-1 text-sm transition-colors bg-gray-200 rounded-md dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 dark:text-white">
+            <span data-lang="zh">EN</span>
+            <span data-lang="en" class="hidden">中文</span>
+          </button>
+
+          <div id="themeToggle" class="theme-toggle" aria-label="切换深色模式"
+          ></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="w-full pt-4 lg:flex-grow lg:overflow-y-auto">
+      <div class="px-4 mx-auto max-w-7xl content-container fade-in">
+        <slot />
+      </div>
+
+      <footer class="w-full py-2 mt-auto">
+        <div
+          class="flex items-center justify-center px-4 mx-auto max-w-7xl content-container">
+          <p class="text-sm text-gray-600 dark:text-gray-400"
+            >&copy; {new Date().getFullYear()}</p
+          >
+        </div>
+      </footer>
+    </main>
+
+    <script is:inline>
+      // 主题初始化
+      function initTheme() {
+        const prefersDarkMode = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const savedTheme = localStorage.getItem("theme");
+
+        if (savedTheme === "dark" || (!savedTheme && prefersDarkMode)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          document.documentElement.classList.add("dark");
+          document.body.classList.add("dark");
+        } else {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.classList.remove("dark");
+          document.body.classList.remove("dark");
+        }
+      }
+
+      // 语言初始化
+      function initLang() {
+        const savedLang = localStorage.getItem("lang") || "zh";
+        document.documentElement.setAttribute("lang", savedLang);
+
+        const langElements = document.querySelectorAll("[data-lang]");
+        langElements.forEach((el) => {
+          if (el.getAttribute("data-lang") === savedLang) {
+            el.classList.remove("hidden");
+          } else {
+            el.classList.add("hidden");
+          }
+        });
+      }
+
+      // 使用RAF替代setInterval实现进度更新
+      function updateProgressWithRAF() {
+        window.dispatchEvent(new Event("updateProgress"));
+        requestAnimationFrame(() => {
+          setTimeout(updateProgressWithRAF, 1000);
+        });
+      }
+
+      // 初始化
+      document.addEventListener("DOMContentLoaded", () => {
+        initTheme();
+        initLang();
+
+        // 主题切换
+        const themeToggle = document.getElementById("themeToggle");
+        if (themeToggle) {
+          themeToggle.addEventListener("click", () => {
+            const currentTheme =
+              document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+            document.documentElement.setAttribute("data-theme", newTheme);
+
+            if (newTheme === "dark") {
+              document.documentElement.classList.add("dark");
+              document.body.classList.add("dark");
+            } else {
+              document.documentElement.classList.remove("dark");
+              document.body.classList.remove("dark");
+            }
+
+            localStorage.setItem("theme", newTheme);
+          });
+        }
+
+        // 语言切换
+        const langToggle = document.getElementById("toggleLang");
+        if (langToggle) {
+          langToggle.addEventListener("click", () => {
+            const currentLang = document.documentElement.getAttribute("lang");
+            const newLang = currentLang === "zh" ? "en" : "zh";
+
+            document.documentElement.setAttribute("lang", newLang);
+            localStorage.setItem("lang", newLang);
+
+            // 切换语言显示
+            const langElements = document.querySelectorAll("[data-lang]");
+            langElements.forEach((el) => {
+              if (el.getAttribute("data-lang") === newLang) {
+                el.classList.remove("hidden");
+              } else {
+                el.classList.add("hidden");
+              }
+            });
+
+            // 触发语言变更事件
+            window.dispatchEvent(new Event("langChange"));
+          });
+        }
+
+        // 使用RAF更新进度
+        updateProgressWithRAF();
+      });
+    </script>
+  </body></html
+>
