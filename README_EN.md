@@ -4,7 +4,7 @@
 
 An elegant website that displays the progress of the current year, including elapsed and remaining days. Supports dark mode and internationalization.
 
-🔗 **Demo Site**: [Year-Progress-Tracker](https://eyozy.github.io/Year-Progress-Tracker/)
+🔗 **Demo**: [Year-Progress-Tracker](https://eyozy.github.io/Year-Progress-Tracker/)
 
 ## ✨ Features
 
@@ -54,11 +54,20 @@ npm run build
 npm run preview
 ```
 
+## 🚀 Automatic Deployment
+
+This project uses GitHub Actions for automatic deployment to GitHub Pages. Every push to the `main` branch triggers the following workflow:
+
+1. Install dependencies and build the project
+2. Deploy the build result to GitHub Pages
+
+After deployment, you can check the deployment status and access URL in the GitHub Pages settings of the project.
+
 ## 🎨 Customizing Themes
 
 1. Modify color variables in `tailwind.config.js`
-2. Adjust progress bar styles in `src/components/ProgressBar.astro`
-3. Update theme switching logic in `src/layouts/MainLayout.astro`
+2. Adjust progress bar styles in `src/components/ProgressBar.astro` - change gradient colors, height etc.
+3. Modify theme switching logic in `src/layouts/MainLayout.astro` - add more theme options
 
 ## 🌐 Adding More Languages
 
@@ -69,6 +78,7 @@ npm run preview
 ## 🤝 Contributing
 
 ### Development Workflow
+
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/your-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
@@ -76,6 +86,7 @@ npm run preview
 5. Create a Pull Request
 
 ### Code Standards
+
 - Use Prettier for code formatting
 - PascalCase for component names
 - camelCase for variables
