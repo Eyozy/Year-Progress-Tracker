@@ -4,6 +4,8 @@
 
 一个优雅的年度进度追踪器网站，显示当前年份的进度、已过天数和剩余天数。支持深色模式和国际化。
 
+🔗 **演示网站**: [https://eyozy.github.io/Year-Progress-Tracker/](https://eyozy.github.io/Year-Progress-Tracker/)
+
 ## ✨ 功能特点
 
 - 📊 显示当前年份的进度百分比

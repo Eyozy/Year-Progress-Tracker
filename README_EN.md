@@ -4,6 +4,8 @@
 
 An elegant website that displays the progress of the current year, including elapsed and remaining days. Supports dark mode and internationalization.
 
+🔗 **Demo Site**: [Year-Progress-Tracker](https://eyozy.github.io/Year-Progress-Tracker/)
+
 ## ✨ Features
 
 - 📊 Shows current year progress percentage
